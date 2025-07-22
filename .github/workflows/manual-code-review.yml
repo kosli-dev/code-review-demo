@@ -24,7 +24,7 @@ on:
 
 jobs:
   code-review:
-    uses: ./.github/workflows/code-review.yml@main
+    uses: ./.github/workflows/code-review.yml
     with:
       kosli-org: ${{ inputs.kosli-org }}
       kosli-flow: ${{ inputs.kosli-flow }}

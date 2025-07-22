@@ -68,7 +68,7 @@ jobs:
       
   code-review:
     needs: [pull-request]
-    uses: ./.github/workflows/code-review.yml@main
+    uses: ./.github/workflows/code-review.yml
     with:
       kosli-org: 'kosli-public'
       kosli-flow: 'code-review-demo'
