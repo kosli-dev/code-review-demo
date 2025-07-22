@@ -1,0 +1,78 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - 'main'
+
+env:
+  KOSLI_ORG: kosli-public
+  KOSLI_FLOW: code-review-demo
+  KOSLI_API_TOKEN: '${{ secrets.KOSLI_API_TOKEN_PROD }}'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  setup:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Kosli cli
+        uses: kosli-dev/setup-cli-action@v2
+        with:
+          version: ${{ vars.KOSLI_CLI_VERSION }}
+
+
+      - name: Create Kosli Custom Attestation Type
+        run: kosli create attestation-type code-review
+          --schema code-review-custom-type-schema.json
+          --jq "all(.[]; .pass == true)"
+
+
+      - name: Create Kosli Flow
+        run: kosli create flow ${{ env.KOSLI_FLOW }}
+          --template-file build-template.yml
+          --description "Code Review Demo"
+
+      - name: Begin Kosli Trail
+        run: kosli begin trail ${{ github.sha }}
+          --flow ${{ env.KOSLI_FLOW }}
+
+
+  pull-request:
+    needs: [setup]
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Kosli cli
+        uses: kosli-dev/setup-cli-action@v2
+        with:
+          version: ${{ vars.KOSLI_CLI_VERSION }}
+
+      - name: Attest pull-request evidence to Kosli
+        run: kosli attest pullrequest github
+          --name pull-request
+          --flow ${{ env.KOSLI_FLOW }}
+          --trail ${{ github.sha }}
+          --github-token ${{ secrets.GITHUB_TOKEN }}
+
+      
+  code-review:
+    needs: [pull-request]
+    uses: ./.github/workflows/code-review.yml@main
+    with:
+      kosli-org: 'kosli-public'
+      kosli-flow: 'code-review-demo'
+      kosli-trail: ${{ github.sha }}
+      base-tag: 'prod'
+    secrets:
+      kosli-api-token: ${{ secrets.KOSLI_API_TOKEN_PROD }}

@@ -1,0 +1,34 @@
+name: Manual Code Review
+
+on:
+  workflow_dispatch:
+    inputs:
+      kosli-org:
+        description: 'Kosli organization name'
+        required: false
+        type: string
+        default: 'kosli-public'
+      kosli-flow:
+        description: 'Kosli flow name'
+        required: true
+        type: string
+      kosli-trail:
+        description: 'Kosli trail SHA to use (defaults to current commit)'
+        required: false
+        type: string
+      base-tag:
+        description: 'Base tag to compare against'
+        required: false
+        type: string
+        default: 'prod'
+
+jobs:
+  code-review:
+    uses: ./.github/workflows/code-review.yml@main
+    with:
+      kosli-org: ${{ inputs.kosli-org }}
+      kosli-flow: ${{ inputs.kosli-flow }}
+      kosli-trail: ${{ inputs.kosli-trail || github.sha }}
+      base-tag: ${{ inputs.base-tag }}
+    secrets:
+      kosli-api-token: ${{ vars.KOSLI_API_TOKEN }} 
