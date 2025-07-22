@@ -75,4 +75,4 @@ jobs:
       kosli-trail: ${{ github.sha }}
       base-tag: 'prod'
     secrets:
-      kosli-api-token: ${{ env.KOSLI_API_TOKEN }}
+      kosli-api-token: ${{ secrets.KOSLI_PUBLIC_API_TOKEN }}
