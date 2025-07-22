@@ -85,4 +85,6 @@ jobs:
           --name code-review
           --attestation-data "${{ env.OUTPUT_FILE }}"
           --flow ${{ inputs.kosli-flow }}
-          --trail ${{ inputs.kosli-trail }} 
+          --trail ${{ inputs.kosli-trail }}
+          --api-token "${{ secrets.kosli-api-token }}"
+          --org ${{ inputs.kosli-org }}
