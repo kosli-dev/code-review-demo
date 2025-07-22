@@ -31,4 +31,4 @@ jobs:
       kosli-trail: ${{ inputs.kosli-trail || github.sha }}
       base-tag: ${{ inputs.base-tag }}
     secrets:
-      kosli-api-token: ${{ vars.KOSLI_API_TOKEN }} 
+      kosli-api-token: ${{ secrets.KOSLI_PUBLIC_API_TOKEN }} 
