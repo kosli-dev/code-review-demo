@@ -70,13 +70,13 @@ jobs:
           echo "Found commits: $COMMIT_LIST_SPACED"
 
       - name: Run code review evaluation
-        run: python3 "bin/code-review-evaluation.py" \
-          --host "https://app.kosli.com" \
-          --org "${{ inputs.kosli-org }}" \
-          --flow "${{ inputs.kosli-flow }}" \
-          --commit-list ${{ steps.get-commits.outputs.commit_list }} \
-          --attestation-type "pull_request" \
-          --api-token "${{ secrets.kosli-api-token }}" \
+        run: python3 "bin/code-review-evaluation.py" 
+          --host "https://app.kosli.com" 
+          --org "${{ inputs.kosli-org }}" 
+          --flow "${{ inputs.kosli-flow }}" 
+          --commit-list ${{ steps.get-commits.outputs.commit_list }} 
+          --attestation-type "pull_request" 
+          --api-token "${{ secrets.kosli-api-token }}" 
           --output-file "${{ env.OUTPUT_FILE }}" 
 
       - name: attest code review evidence to Kosli
