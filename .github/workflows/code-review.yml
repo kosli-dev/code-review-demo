@@ -7,8 +7,13 @@ on:
         description: 'Kosli organization name'
         required: true
         type: string
-      kosli-flow:
-        description: 'Kosli flow name'
+      kosli-build-flow:
+        description: 'Kosli build flow name *where the PR attestations are made*'
+        required: true
+        type: string
+
+      kosli-release-flow:
+        description: 'Kosli release flow name *where the attestation will be made*'
         required: true
         type: string
       kosli-trail:
@@ -73,7 +78,7 @@ jobs:
         run: python3 "bin/code-review-evaluation.py" 
           --host "https://app.kosli.com" 
           --org "${{ inputs.kosli-org }}" 
-          --flow "${{ inputs.kosli-flow }}" 
+          --flow "${{ inputs.kosli-build-flow }}" 
           --commit-list ${{ steps.get-commits.outputs.commit_list }} 
           --attestation-type "pull_request" 
           --api-token "${{ secrets.kosli-api-token }}" 
@@ -84,7 +89,7 @@ jobs:
           --type code-review
           --name code-review
           --attestation-data "${{ env.OUTPUT_FILE }}"
-          --flow ${{ inputs.kosli-flow }}
+          --flow ${{ inputs.kosli-release-flow }}
           --trail ${{ inputs.kosli-trail }}
           --api-token "${{ secrets.kosli-api-token }}"
           --org ${{ inputs.kosli-org }}
