@@ -32,6 +32,7 @@ jobs:
           --flow ${{ env.KOSLI_FLOW }}
 
   code-review:
+    needs: [setup]
     uses: ./.github/workflows/code-review.yml
     with:
       kosli-org: kosli-public
