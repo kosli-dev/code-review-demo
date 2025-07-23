@@ -1,231 +1,246 @@
-# SCR Scenarios
+# S1: Committer is not a reviewer
 
-## Rules
-* Never-alone means
-  * any 2 committers from a branch approve PR, or a 3rd person 
+#### Given
 
-      
-## Open questions
-* Who is part of the approved list for a specific repository? Is this in-scope for Kosli?
-  * need to understand what's possible within the constraints of Github / Bitbucket etc.
-  * From the existing control's perspective, it doesn't matter M
-* How are service accounts treated?
-* 
+- Alice is a committer
+- and Bob is a reviewer
+- and tag `1.0.0` is a trusted baseline
 
-## A simple pull-request
+#### When
 
-Git graph:
+- Alice commits `c2` on `develop`
+- and Alice creates a pull request
+- and Bob approves and merges the pull request, creating merge commit `m1`
 
-```
-* c1 - Faye
-|\
-| * c2 - Sami
-|/
-* c3 - Sami - merge commit -[PR #1 Authored by Sami, Approved by Faye]
-```
+#### Then
 
-PR #1 covers `[c2]`
+- The control passes for changes from `1.0.0` to `1.0.1` tags
 
-The current baseline commit is: `c1`
-
-=> Checking for never-alone-review evidence for `c1..c3` 
-
-```
-c2 - Sami (reviewed by Faye in PR #1)
-c3 - Sami (result of merging PR #1 reviewed by Faye)
+```mermaid
+gitGraph:
+    commit id: "c1" tag: "1.0.0"
+    branch develop
+    checkout develop
+    commit id: "c2"
+    checkout main
+    merge develop id: "m1" tag: "1.0.1"
 ```
 
-## A squashed pull-request merge
+# S2: Committer is a reviewer
 
-Git graph
-```
-* c1 - Faye
-|\
-| * c2 - Sami
-|
-* s3 - Sami - squash commit -[PR #1 Authored by Sami, Approved by Faye]
-```
+#### Given
 
-PR #1 covers `[c2]`
+- Alice is a committer and a reviewer
+- and tag `1.0.0` is a trusted baseline
 
-The current baseline commit is: `c1`
+#### When
 
-=> Checking for never-alone-review evidence for `c1..s3` 
+- Alice commits `c2` on `develop`
+- and Alice creates a pull request
+- and Alice approves and merges the pull request, creating merge commit `m1`
 
-```
-s3 - Sami (result of merging PR #1 reviewed by Faye)
-```
+#### Then
 
-## A squashed pull-request merge (with multiple commits)
+- The control fails for changes from `1.0.0` to `1.0.1` tags
 
-Git graph
-```
-* c1 - Faye
-|\
-| * c2 - Jacob
-| |
-| * c3 - Sami
-|
-* c4 - Sami - squash commit -[PR #1 Authored by Sami, Approved by Jacob]
+```mermaid
+gitGraph:
+    commit id: "c1" tag: "1.0.0"
+    branch develop
+    checkout develop
+    commit id: "c2"
+    checkout main
+    merge develop id: "m1" tag: "1.0.1"
 ```
 
-PR #1 covers `[c2,c3]`
+# S2: 2 Committers and both approve
 
-The current baseline commit is: `c1`
+#### Given
 
-=> Checking for never-alone-review evidence for `c1..c4` 
+- Alice is a committer and a reviewer
+- and Bob is a committer and a reviewer
+- and tag `1.0.0` is a trusted baseline
 
-```
-c4 - Sami (result of merging PR #1 reviewed by Jacob) => non-compliant
-```
+#### When
 
--> Is result compliant / **non-compliant**?
+- Alice commits `c2` on `develop`
+- and Bob commits `c3` on `develop`
+- and Bob raises a pull request for `c3` to be merged into `main`
+- and Alice approves the pull request
+- and Bob approves the pull request
+- and Bob merges the pull request
 
-## Trunk based
+#### Then
 
-Git graph
-```
-* c1 - Faye
-|
-* c2 - Sami
-|
-* c3 - Jacob
-|
-* c4 - Mohan
-|
-* c5 - Mohan
-```
+- The control passes for changes from `1.0.0` to `1.0.1` tags
 
-The current baseline commit is: `c1`
-
-=> Checking for never-alone-review evidence for `c1..c5` 
-
-```
-c2 - Sami (no evidence) => non-compliant
-c3 - Jacob (no evidence) => non-compliant
-c4 - Mohan (no evidence) => non-compliant
-c5 - Mohan (no evidence) => non-compliant
+```mermaid
+gitGraph:
+    commit id: "c1" tag: "1.0.0"
+    branch develop
+    checkout develop
+    commit id: "c2"
+    commit id: "c3"
+    checkout main
+    merge develop id: "m1" tag: "1.0.1"
 ```
 
+# S4: 2 Committers and only one of them approves
 
-## Multiple committers on merge commit  - Committers as approver
+#### Given
 
-Git graph:
+- Alice is a committer
+- and Bob is a committer
+- and tag `1.0.0` is a trusted baseline
 
-```
-* c1 - Faye
-|\
-| * c2 - Sami
-| |
-| * c3 - Faye
-|/
-* c4 - Sami - merge commit -[PR #1 Authored by Faye, Approved by Sami]
-```
+#### When
 
-PR #1 covers `[c2,c3]`
+- Alice commits `c2` on `develop`
+- and Bob commits `c3` on `develop`
+- and Bob raises a pull request for `c3` to be merged into `main`
+- and only Bob approves the pull request
+- and Bob merges the pull request
 
-The current baseline commit is: `c1`
-=> Checking for never-alone-review evidence for `c1..c4` 
-```
-c2 - Sami (...)
-c3 - Faye (...)
-c4 - Sami (...)
+#### Then
+
+- The control fails for changes from `1.0.0` to `1.0.1` tags because `c3` has not had a 4-eye review
+
+```mermaid
+gitGraph:
+    commit id: "c1" tag: "1.0.0"
+    branch develop
+    checkout develop
+    commit id: "c2"
+    commit id: "c3"
+    checkout main
+    merge develop id: "m1" tag: "1.0.1"
 ```
  
-## Multiple committers on merge commit - PR author as approver?
+# S5: Commits without PR
 
-Git graph:
+#### Given
 
-```
-* c1 - Faye
-|\
-| * c2 - Sami
-| |
-| * c3 - Faye
-|/
-* c4 - Sami - merge commit -[PR #1 Authored by Sami, Approved by Sami]
-```
+- Alice is a committer
+- and tag `1.0.0` is a trusted baseline
 
-PR #1 covers `[c2,c3]`
+#### When
 
-The current baseline commit is: `c1`
-=> Checking for never-alone-review evidence for `c1..c4` 
-```
-c2 - Sami (...)
-c3 - Faye (...)
-c4 - Sami (...)
-```
+- Alice commits `c2` and `c3` on `release`
 
-## Multiple committers on merge commit - PR author not a committer?
+#### Then
 
-Git graph:
+- The control fails for changes from `1.0.0` to `1.0.1` tags
 
-```
-* c1 - Faye
-|\
-| * c2 - Sami
-| |
-| * c3 - Faye
-|/
-* c4 - Jon - merge commit -[PR #1 Authored by Jon, Approved by Jon]
+```mermaid
+gitGraph:
+    commit id: "c1" tag: "1.0.0"
+    branch release
+    checkout release
+    commit id: "c2"
+    commit id: "c3" tag: "1.0.1"
 ```
 
-PR #1 covers `[c2,c3]`
+# S6: Direct commit on release branch
 
-The current baseline commit is: `c1`
-=> Checking for never-alone-review evidence for `c1..c4` 
-```
-c2 - Sami (...)
-c3 - Faye (...)
-c4 - Jon (...)
-```
+#### Given
 
+- Alice is a committer
+- and Bob is a reviewer
+- and tag `1.0.0` is a trusted baseline
 
-## Multiple committers on merge commit - multiple approvers (no one else left to approve)?
+#### When
 
-Git graph:
+- Alice commits `c2` on `release`
+- and Alice commits `c3` and `c4` on `feature`
+- and Alice raises a pull request for `feature` to be merged into `release`
+- and Bob approves and merges the pull request, creating tag `1.0.1`
 
-```
-* c1 - Faye
-|\
-| * c2 - Sami
-| |
-| * c3 - Faye
-| |
-| * c4 - Jon
-|/
-* c5 - Jon - merge commit -[PR #1 Authored by Sami, Approved by Jon, Faye]
-```
+#### Then
 
-PR #1 covers `[c2,c3,c4]`
+- The control fails for changes from `1.0.0` to `1.0.1` tags, since `c2` has not had a 4-eye review
 
-The current baseline commit is: `c1`
-=> Checking for never-alone-review evidence for `c1..c5` 
-```
-c2 - Sami (...)
-c3 - Faye (...)
-c4 - Jon (...)
-c5 - Jon (...)
+```mermaid
+gitGraph:
+    commit id: "c1" tag: "1.0.0"
+    branch release
+    checkout release
+    commit id: "c2"
+    branch feature
+    checkout feature
+    commit id: "c3"
+    commit id: "c4"
+    checkout release
+    merge feature id: "m1" tag: "1.0.1"
 ```
 
+# S7: 2 PRs with reviewers different from committers
 
-## Pull request is approved but branch is merged manually
+#### Given
 
+- Alice is a committer and an approver
+- and Bob is a reviewer and an approver
+- and tag `1.0.0` is a trusted baseline
 
+#### When
 
-## Squash commits locally 
+- Alice commits `c2` on `feature/A`
+- and Alice raises a pull request for `feature/A` to be merged into `main`
+- and Bob approves and merges the pull request, creating merge commit `m1`
+- and Bob commits `c3` on `feature/B`
+- and Bob raises a pull request for `feature/B` to be merged into `main`
+- and Alice approves and merges the pull request, creating merge commit `m2`
 
+#### Then
 
-## Hotfix branch
+- The control passes for changes from `1.0.0` to `1.0.1` tags
 
-Git graph
+```mermaid
+gitGraph:
+    commit id: "c1" tag: "1.0.0"
+    branch feature/A
+    checkout feature/A
+    commit id: "c2"
+    checkout main
+    merge feature/A id: "m1"
+    branch feature/B
+    checkout feature/B
+    commit id: "c3"
+    checkout main
+    merge feature/B id: "m2" tag: "1.0.1"
 ```
-* c1 - Faye
-|\
-| * c2 - Jacob
-| |
-| * c3 - Sami
-*c4
-```
 
-check `c1..c3`
+# S8: 2 PRs where one has reviewer being the committer 
+
+#### Given
+
+- Alice is a committer and an approver
+- and Bob is a reviewer and an approver
+- and tag `1.0.0` is a trusted baseline
+
+#### When
+
+- Alice commits `c2` on `feature/A`
+- and Alice raises a pull request for `feature/A` to be merged into `main`
+- and Bob approves and merges the pull request, creating merge commit `m1`
+- and Bob commits `c3` on `feature/B`
+- and Bob raises a pull request for `feature/B` to be merged into `main`
+- and Bob approves and merges the pull request, creating merge commit `m2`
+
+#### Then
+
+- The control fails for changes from `1.0.0` to `1.0.1` tags, since `c3` has not had a 4-eye review
+
+```mermaid
+gitGraph:
+    commit id: "c1" tag: "1.0.0"
+    branch feature/A
+    checkout feature/A
+    commit id: "c2"
+    checkout main
+    merge feature/A id: "m1"
+    branch feature/B
+    checkout feature/B
+    commit id: "c3"
+    checkout main
+    merge feature/B id: "m2" tag: "1.0.1"
+```
