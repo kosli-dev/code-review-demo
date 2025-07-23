@@ -16,10 +16,10 @@ on:
         required: true
         type: string
       base-tag:
-        description: 'Base tag to compare against (default: prod)'
+        description: 'Base tag to compare against (default: 1.0.0)'
         required: false
         type: string
-        default: 'prod'
+        default: '1.0.0'
     secrets:
       kosli-api-token:
         description: 'Kosli API token'

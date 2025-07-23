@@ -20,7 +20,7 @@ on:
         description: 'Base tag to compare against'
         required: false
         type: string
-        default: 'prod'
+        default: '1.0.0'
 
 jobs:
   code-review:
