@@ -53,7 +53,7 @@ gitGraph:
     merge develop id: "m1" tag: "1.0.1"
 ```
 
-# S2: Two Committers and both approve
+# S3: Two Committers and both approve
 
 #### Given
 

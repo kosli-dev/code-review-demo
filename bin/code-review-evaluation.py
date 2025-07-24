@@ -57,6 +57,7 @@ def evaluate_attestation(commit_hash, attestation):
         "pass": False,
         "reason": "",
         "attestation_url": attestation.get("html_url", ""),
+        "pr_url": attestation.get("pull_requests", [])[0].get("url", ""),
     }
 
     att_type = attestation.get("attestation_type")
@@ -81,7 +82,7 @@ def evaluate_attestation(commit_hash, attestation):
             commits = pr.get("commits", [])
 
             if not approvers:
-                result["reason"] = "No approvers in pull request"
+                result["reason"] = "Pull request has no approvers"
                 return result
 
             # Clean up usernames (e.g., whitespace)
@@ -96,11 +97,11 @@ def evaluate_attestation(commit_hash, attestation):
             valid = approver_usernames[0].strip() not in commit_authors
 
             if not valid:
-                result["reason"] = "Approver is also a committer"
+                result["reason"] = "The only approver of the PR is also a committer"
                 return result
 
         result["pass"] = True
-        result["reason"] = "Pull request passes approval/compliance logic"
+        result["reason"] = "Pull request demonstrates never-alone code review"
         return result
 
     result["reason"] = (
