@@ -52,13 +52,16 @@ def make_attestations_request(
 
 
 def evaluate_attestation(commit_hash, attestation):
+    pull_requests = attestation.get("pull_requests", [])
     result = {
         "commit": commit_hash,
         "pass": False,
         "reason": "",
         "attestation_url": attestation.get("html_url", ""),
-        "pr_url": attestation.get("pull_requests", [])[0].get("url", ""),
     }
+    pr_url = pull_requests[0].get("url", "") if pull_requests else ""
+    if pr_url:
+        result["pr_url"] = pr_url
 
     att_type = attestation.get("attestation_type")
     is_compliant = attestation.get("is_compliant", False)
@@ -72,7 +75,6 @@ def evaluate_attestation(commit_hash, attestation):
         return result
 
     if att_type == "pull_request":
-        pull_requests = attestation.get("pull_requests", [])
         if not pull_requests:
             result["reason"] = "No pull requests in attestation"
             return result
